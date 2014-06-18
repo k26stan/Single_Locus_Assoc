@@ -2,7 +2,6 @@
 ## Use Height or Soemthing as Phenotype (CRP, maybe?) ##
 ## This is for BigCall Paper to assess differences in BGI/HC Call Sets ##
 ## May 13, 2014 ##
-## Unnecessary Comment
 ## Kristopher Standish ##
 
 ########################################################
