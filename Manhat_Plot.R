@@ -12,6 +12,7 @@ PathToHC <- LINE[1]
 Split <- strsplit(PathToHC,"/")
 PathToAssoc <- paste(Split[[1]][1:(length(Split[[1]])-1)],collapse="/")
 Pheno <- LINE[2]
+Pheno <- gsub(".txt","",Pheno)
 Covars <- LINE[3]
 
 #########################################################
@@ -20,7 +21,7 @@ Covars <- LINE[3]
 
 ## Load Data
 start <- proc.time()
-HC <- read.table(PathToHC,sep="\t",header=T,colClass=c("factor","numeric","numeric")) ; proc.time()-start
+HC <- read.table(PathToHC,sep="\t",header=T,colClass=c("factor","character","numeric","numeric")) ; proc.time()-start
 
 ## Chromosome Length Table
 lens <- read.table(file="/projects/janssen/clinical/Chrom_Lengths.txt", sep="\t", header=T, stringsAsFactors=F)
@@ -38,8 +39,7 @@ PLOT_THRSH <- 2
 
 ## Loop it to plot multiple plots
 jpeg( paste(PathToAssoc, "/Manhattan_",Pheno,"_",Covars,".jpeg", sep=""), height=1000, width=2000, pointsize=24)
-Data_F <- HC
-  Data <- Data_F[which(Data_F$P<10^-PLOT_THRSH),]
+  Data <- HC[which(HC$P<10^-PLOT_THRSH),]
   nrow(Data)
   plot(0,0, type="n", xlim=c(0,3e9), ylim=c(PLOT_THRSH,ceiling(Set_Range)), xlab="Position", ylab="-log10(p-value)", main=paste("Association with - ", Pheno, " (cov: ", Covars, ")", sep=""), xaxt="n" )
 legend(.9*3e9,ceiling(Set_Range), legend=c("Odd-Chr","Even-Chr"), pch=20, col=COLS[1:2] )
@@ -76,7 +76,7 @@ dev.off()
 ###########################
 
 # Which Variants Meet Genome-Wide Significance Thresholds (5e-8)
-HC_CND <- HC[ which(HC$P < 5e-7),]
+HC_CND <- HC[ which(HC$P < 5e-6),]
 
 write.table(HC_CND, paste(PathToAssoc, "/CND_",Pheno,"_",Covars,".txt", sep=""), sep="\t", row.names=F, col.names=T, quote=F)
 
