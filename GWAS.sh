@@ -42,6 +42,8 @@ MANH_PLOT_R=/projects/janssen/ASSOCIATION/SCRIPTS/Manhat_Plot.R
 MAKE_COV_TAB_R=/projects/janssen/ASSOCIATION/SCRIPTS/Make_Cov_Tab.R
 PCA_PLOT_R=/projects/janssen/ASSOCIATION/SCRIPTS/PCA_Plot.R
 GET_ANNOT_PY=/projects/janssen/ASSOCIATION/SCRIPTS/Get_Annot.py
+GET_PLINK_OUT_PY=/projects/janssen/ASSOCIATION/SCRIPTS/Get_Plink_Out.py
+COMPILE_OUTS_R=/projects/janssen/ASSOCIATION/SCRIPTS/Compile_Outs.R
 
 ###########################################################
 ## Pull some Info out of Parameters ##
@@ -62,6 +64,12 @@ PCS=`seq 1 ${PC_COUNT}`
 PCS_COMMAND=`echo "PC"${PCS} | sed 's/ /QQQPC/g'`
 COVS_COMMAND=`echo "${COVS}QQQ${PCS_COMMAND}" | sed 's/QQQ/,/g'`
 COVS_FILENAME=`echo "${COVS}QQQ${PCS_COMMAND}" | sed 's/QQQ/_/g'`
+fi
+
+# Incorporate Country/Site of Study as Binary Covariate (if Included)
+if [[ $COVS == *COUN* ]]
+then
+COVS_COMMAND=`echo $COVS_COMMAND | sed 's/COUN/CN_ARG,CN_AUS,CN_COL,CN_HUN,CN_LTU,CN_MEX,CN_MYS,CN_NZL,CN_POL,CN_RUS,CN_UKR/g'`
 fi
 
 # Specify commands and extensions for Cont vs Bin Phenotype
@@ -176,9 +184,12 @@ echo `date` "5 - Perform Single-Locus Association Test" >> ${UPDATE_FILE}
 ${PLINK} --bfile ${VAR_FILE%%.bed} \
 --pheno ${PHENO_FILE} \
 --covar ${NEW_COV_FILE} --covar-name ${COVS_COMMAND} \
---${SUFFIX} hide-covar --adjust \
+--${SUFFIX} hide-covar --adjust qq-plot \
 --allow-no-sex \
+--hardy midp \
 --maf 0.01 \
+--keep-allele-order \
+--freqx \
 --out ${ASSOC_FILE}
 
 echo `date` "Single-Locus Tests Done" >> ${UPDATE_FILE}
@@ -221,29 +232,69 @@ fi
 ## 8 ## Pull out Annotations ##############################
 ###########################################################
 if [ "$START_STEP" -le 8 ]; then
-	# Use Python to Pull out Cypher/SG-Adviser Annotations for Candidate SNPs
+	# Use Tabix to Pull out Cypher/SG-Adviser Annotations for Candidate SNPs
 echo \### 8 - `date` \###
 echo \### Pull out Annotations \###
 echo `date` "8 - Pull out Annotations" >> ${UPDATE_FILE}
 
-echo ${CND_FILE}
-echo ${CND_ANNOTS}
+## Pull out Variants from $CND_FILE into CHR:START-STOP format
+tail -n +2 ${CND_FILE} | awk '{print "chr"$1":"$3"-"$3}' > ${CND_FILE%%txt}list
 
-## Pull out Variants from $CND_FILE into chr
-cat ${CND_FILE} | awk '{print "chr"$1":"$3"-"$3}' > ${CND_FILE%%txt}list
-for i in `cat ${CND_FILE%%txt}list`; do echo $i; tabix ${ANNOTS} ${i} >> ${CND_ANNOTS} ; done
-cat ${CND_ANNOTS} | awk '{print $2":"$3"-"$4"\t"$20"\t"$21"\t"$22"\t"$24}' > ${CND_GENES}
+## Use Tabix to Pull out Annotations
+zcat ${ANNOTS} | head -1 > ${CND_ANNOTS}
+for i in `cat ${CND_FILE%%txt}list`
+do
+# echo $i
+tabix ${ANNOTS} ${i} >> ${CND_ANNOTS}
+done
+
+echo `date` "Done Pulling Annotations" >> ${UPDATE_FILE}
+printf "V\nV\nV\nV\nV\nV\nV\nV\n"
+
+fi
+###########################################################
+## 9 ## Compile Stats and Annotations #####################
+###########################################################
+if [ "$START_STEP" -le 9 ]; then
+	# Use Python, Bash, and R to Compile Stats/Annots
+echo \### 9 - `date` \###
+echo \### Compile Stats and Annotations \###
+echo `date` "9 - Compile Stats and Annotations" >> ${UPDATE_FILE}
+
+# cat ${CND_ANNOTS} | awk '{print $2":"$3"-"$4"\t"$20"\t"$21"\t"$22"\t"$24}' > ${CND_GENES}
+cat ${CND_ANNOTS} | cut -d$'\t' -f2-7,20-22,24,46-50,54,64,68,70,74,78-80,100-101,105  > ${CND_GENES}
+
+## Use Python to Compile Info for Janssen
+python ${GET_PLINK_OUT_PY} ${CND_FILE} \
+	${ASSOC_FILE}.hwe ${ASSOC_FILE}.assoc.linear.adjusted ${ASSOC_FILE}.frqx ${ASSOC_FILE}.assoc.linear \
+	${CND_FILE%%txt}hwe ${CND_FILE%%txt}adj ${CND_FILE%%txt}frqx ${CND_FILE%%txt}pv
+
+## Use Rscript to Pull Together Desired Info
+Rscript ${COMPILE_OUTS_R} ${CND_FILE} ${CND_FILE%%txt}hwe ${CND_FILE%%txt}adj ${CND_FILE%%txt}frqx ${CND_FILE%%txt}pv ${CND_GENES} ${CND_ANNOTS}
+
+#### HAVE TO ORGANIZE THE OUTPUTS THAT CHRIS WANTS ####
+# Chromosome (.P file)
+# Variant Position (.P file)
+# rsID (.P file)
+# Test P-Value (.P file)
+# Expected P-Value (Calculate w/ R)
+# HWE P-Value (.hwe file)
+# Allele Frequency in Cases (NA)
+# Allele Frequency in Ctrls (NA)
+	# Genotype Frequency Instead (.hwe file)
 
 
-# Use Get_Annot.py to pull out Annotations for Candidate Variants (p<5e-6)
-# if [ $ANNOTS != "F" ] ; then
-# python ${GET_ANNOT_PY} ${CND_FILE} ${ANNOTS} ${CND_ANNOTS} ${CND_GENES}
-# fi
-
-echo `date` "Annotations Pulled" >> ${UPDATE_FILE}
+echo `date` "Everything Should be Compiled!" >> ${UPDATE_FILE}
 printf "V\nV\nV\nV\nV\nV\nV\nV\n"
 
 fi
 ###########################################################
 ## X ## End of Doc ########################################
 ###########################################################
+
+echo `date` "DONE DONE DONE DONE DONE DONE DONE DONE DONE" >> ${UPDATE_FILE}
+echo `date`
+echo "DONE DONE DONE DONE DONE DONE DONE DONE DONE"
+printf "V\nV\nV\nV\nV\nV\nV\nV\n"
+
+

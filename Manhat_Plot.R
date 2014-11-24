@@ -75,8 +75,9 @@ dev.off()
 ## COMPILE VARIANTS #######
 ###########################
 
-# Which Variants Meet Genome-Wide Significance Thresholds (5e-8)
-HC_CND <- HC[ which(HC$P < 5e-6),]
+# Which Variants Meet Genome-Wide Significance Thresholds
+PRINT_THRSH <- 1e-4
+HC_CND <- HC[ which(HC$P <= PRINT_THRSH),]
 
 write.table(HC_CND, paste(PathToAssoc, "/CND_",Pheno,"_",Covars,".txt", sep=""), sep="\t", row.names=F, col.names=T, quote=F)
 
