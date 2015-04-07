@@ -143,8 +143,8 @@ if [ $EIG_VEC = "F" ] ; then
 ${PLINK} --bfile ${VAR_FILE%%.bed} \
 --pca header \
 --allow-no-sex \
---out ${ASSOC}/${VAR_FILE%%.bed}
-EIG_VEC=${VAR_FILE%%.bed}.eigenvec
+--out ${ASSOC}/${VAR_FILE_NAME%%.bed}
+EIG_VEC=${ASSOC}/${VAR_FILE_NAME%%.bed}.eigenvec
 fi
 
 echo `date` "Principal Components Calculated/Specified" >> ${UPDATE_FILE}
