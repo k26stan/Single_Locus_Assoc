@@ -66,7 +66,13 @@ names(ADJ_2)[which(names(ADJ_2)=="QQ")] <- "P_Exp"
 FRQ_2 <- FRQ[,c("SNP","A1","A2","C.HOM.A1.","C.HET.","C.HOM.A2.")]
 
 ## PV Array
-PV_2 <- PV[,c("SNP","BETA","STAT","P")]
+if ( "BETA" %in% colnames(PV) ) {
+	Suffix <- "linear"
+	PV_2 <- PV[,c("SNP","BETA","STAT","P")]
+}else{
+	Suffix <- "logistic"
+	PV_2 <- PV[,c("SNP","OR","STAT","P")]
+}
 names(PV_2)[which(names(PV_2)=="P")] <- "P_Assoc_2"
 
 ## Gene Array
@@ -189,10 +195,15 @@ MG_WRITE <- MG_WRITE[order(as.numeric(as.character(MG_WRITE$CHR)),decreasing=F),
 MG_WRITE <- MG_WRITE[c( which(MG_WRITE$CHR!=0),which(MG_WRITE$CHR==0),which(is.na(MG_WRITE$CHR)) ), ]
 
 ## Reorder ALL columns in more logical manner
+if ( Suffix=="linear" ) {
+	BETA_or_OR <- "BETA"
+}else{
+	BETA_or_OR <- "OR"
+}
 COL_ORDER <- c("DATE","PHENO","COVS","CHR","BP","SVS_ID","SNP","VarType","CHR_POS","Chromosome","Begin","End",
 	"A1","A2","Reference","Allele","GENO","REF_GENO","HET","ALT_GENO","A1_FREQ","A2_FREQ","REF_ALL","ALT_ALL","C.HOM.A1.","C.HET.","C.HOM.A2.","P_HW",
 	"X1000genomes_AFR","X1000genomes_AMR","X1000genomes_ASN","X1000genomes_EUR","X1000GENOMES_AF","CG_WELLDERLY_AF",
-	"BETA","STAT","P_Assoc","P_Exp","FDR_BY","FDR_BH",
+	BETA_or_OR,"STAT","P_Assoc","P_Exp","FDR_BY","FDR_BH",
 	"Gene","Gene_Type","Location","Coding_Impact","Functional_Impact","FUNC_PRED",
 	"Splice_Site_Pred","Protein_Impact_Prediction.Polyphen.","Protein_Impact_Prediction.SIFT.","Protein_Impact_Prediction.Condel.",
 	"Gene_Ontology","Disease_Ontology","omimGene_ID.omimGene_association","Protein_Domain_Gene_Ontology","dbSNP_ID" )
@@ -203,7 +214,7 @@ MG_WRITE_FULL <- MG_WRITE[,COL_ORDER] # t(MG_WRITE_FULL[875,])
 ## Remove redundant or superfluous columns from Table
 COL_ORDER_SHORT <- c("DATE","PHENO","COVS","CHR","BP","SVS_ID","SNP",
 	"Reference","Allele","A1","A2","GENO","REF_GENO","HET","ALT_GENO","REF_ALL","ALT_ALL","P_HW",
-	"BETA","STAT","P_Assoc","P_Exp","FDR_BY","FDR_BH",
+	BETA_or_OR,"STAT","P_Assoc","P_Exp","FDR_BY","FDR_BH",
 	"X1000genomes_AFR","X1000genomes_AMR","X1000genomes_ASN","X1000genomes_EUR","X1000GENOMES_AF","CG_WELLDERLY_AF",
 	"Gene","Gene_Type","Location","Coding_Impact","FUNC_PRED","Functional_Impact",
 	"Splice_Site_Pred","Protein_Impact_Prediction.Polyphen.","Protein_Impact_Prediction.SIFT.","Protein_Impact_Prediction.Condel.",

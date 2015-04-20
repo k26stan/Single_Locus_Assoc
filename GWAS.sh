@@ -266,7 +266,7 @@ cat ${CND_ANNOTS} | cut -d$'\t' -f2-7,20-22,24,46-50,54,64,68,70,74,78-80,100-10
 
 ## Use Python to Compile Info for Janssen
 python ${GET_PLINK_OUT_PY} ${CND_FILE} \
-	${ASSOC_FILE}.hwe ${ASSOC_FILE}.assoc.linear.adjusted ${ASSOC_FILE}.frqx ${ASSOC_FILE}.assoc.linear \
+	${ASSOC_FILE}.hwe ${ASSOC_FILE}.assoc.${SUFFIX}.adjusted ${ASSOC_FILE}.frqx ${ASSOC_FILE}.assoc.${SUFFIX} \
 	${CND_FILE%%txt}hwe ${CND_FILE%%txt}adj ${CND_FILE%%txt}frqx ${CND_FILE%%txt}pv
 
 ## Use Rscript to Pull Together Desired Info
