@@ -164,7 +164,7 @@ echo `date` "4 - Compile Covariates with PCs" >> ${UPDATE_FILE}
 if [ $COV_FILE = "F" ] ; then
 cp ${EIG_VEC} ${NEW_COV_FILE}
 else
-Rscript ${MAKE_COV_TAB_R} ${EIG_VEC} ${COV_FILE} ${NEW_COV_FILE}
+Rscript ${MAKE_COV_TAB_R} ${EIG_VEC} ${COV_FILE} ${COVS_COMMAND} ${NEW_COV_FILE}
 fi
 
 echo `date` "Principal Components Calculated/Specified" >> ${UPDATE_FILE}
