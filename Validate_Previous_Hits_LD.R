@@ -225,6 +225,8 @@ Cand_P.keep <- Cand_P[ which(Cand_P$SNP %in% To_Keep), ]
 CANDS.p <- as.character( Cand_P.keep$SNP )
  # Get list of SNPs in Candidate Genes
 Cand_Gene.List <- c( "GRIN2B","CNTN5","CYP2E1" )
+Cand_Gene.List <- as.character( read.table("/projects/janssen/Phased/Test_Genes.txt",header=F)[,1] )
+Cand_Gene.List <- as.character( read.table("/projects/janssen/RV_Rare_Variants/2014_Plenge.txt",header=F)[,1] )
 Cand_Gene.Which <- which( G$geneSymbol %in% Cand_Gene.List )
 Cand_Gene.Rng.1 <- G[ Cand_Gene.Which, c("geneSymbol","chrom","txStart","txEnd") ]
 TEMP.chrom <- aggregate( Cand_Gene.Rng.1[,"chrom"], by=list(Gene=Cand_Gene.Rng.1[,"geneSymbol"]), function(x)head(x,1) )
